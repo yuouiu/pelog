@@ -15,7 +15,7 @@ class IndicatorBot:
         with open(config_file, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
         
-        self.dingtalk_config = self.config['dingtalk']
+        self.dingtalk_config = self.config['cn_config']['dingtalk']
     
     def get_stock_indicators(self):
         """获取股票相关指标数据"""
