@@ -1,27 +1,27 @@
 import json
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import logging
 
 # 配置日志
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-class IndexValuationBot:
+class HKIndexValuationBot:
     def __init__(self, config_file='config.json'):
         """初始化配置"""
         with open(config_file, 'r', encoding='utf-8') as f:
             config = json.load(f)
         
-        # 使用A股配置
-        self.config = config['cn_config']
+        # 使用港股配置
+        self.config = config['hk_config']
         self.lixinger_config = self.config['lixinger']
         self.dingtalk_config = self.config['dingtalk']
         self.stock_codes = self.config['stock_codes']
         self.index_names = self.config.get('index_names', {})
     
     def get_index_valuation(self, date=None):
-        """获取指数估值数据"""
+        """获取港股指数估值数据"""
         if date is None:
             date = datetime.now().strftime('%Y-%m-%d')
         
@@ -39,7 +39,7 @@ class IndexValuationBot:
         logger.info(f"请求参数: {json.dumps(payload, ensure_ascii=False, indent=2)}")
         
         try:
-            logger.info(f"正在获取 {date} 的指数估值数据...")
+            logger.info(f"正在获取 {date} 的港股指数估值数据...")
             response = requests.post(
                 self.lixinger_config['api_url'],
                 json=payload,
@@ -51,13 +51,13 @@ class IndexValuationBot:
             
             if response.status_code == 200:
                 data = response.json()
-                logger.info("成功获取理杏仁API数据")
+                logger.info("成功获取理杏仁港股API数据")
                 # 详细打印API返回数据
                 logger.info(f"API返回数据: {json.dumps(data, ensure_ascii=False, indent=2)}")
                 
                 # 检查数据结构
                 if 'data' in data and data['data']:
-                    logger.info(f"获取到 {len(data['data'])} 条指数数据")
+                    logger.info(f"获取到 {len(data['data'])} 条港股指数数据")
                     for i, item in enumerate(data['data']):
                         stock_code = item.get('stockCode', 'Unknown')
                         logger.info(f"指数 {i+1}: {stock_code} - {json.dumps(item, ensure_ascii=False)}")
@@ -80,10 +80,10 @@ class IndexValuationBot:
         
         if not valuation_data or 'data' not in valuation_data:
             logger.warning("估值数据为空或缺少data字段")
-            return "📊 指数估值数据获取失败"
+            return "📊 港股指数估值数据获取失败"
         
         message_lines = [
-            "📊 **指数估值播报**",
+            "🇭🇰 **港股指数估值播报**",
             f"📅 **日期**: {date}",
             ""
         ]
@@ -123,13 +123,12 @@ class IndexValuationBot:
                     else:
                         level = "🔴 高估"
                     
-                    # 修改为带换行的格式
-                    line = f"📈 **{index_name}** | 估值: **{pe_percentile_percent:.1f}%** | {level}  "
+                    line = f"📈 **{index_name}** | 估值: **{pe_percentile_percent:.1f}%** | {level}"
                     message_lines.append(line)
                     logger.info(f"添加消息行: {line}")
                     processed_count += 1
                 else:
-                    line = f"📈 **{index_name}** | 状态: ❌ 数据获取失败  "
+                    line = f"📈 **{index_name}** | 状态: ❌ 数据获取失败"
                     message_lines.append(line)
                     logger.warning(f"指数 {stock_code} 未能获取到百分位数据")
             
@@ -143,18 +142,18 @@ class IndexValuationBot:
                 "",
                 "百分位越低表示估值越便宜：",
                 "",
-                "🟢 **0-20%**: 低估区域  ",
-                "🟡 **20-40%**: 偏低区域  ", 
-                "🟠 **40-60%**: 适中区域  ",
-                "🔴 **60-80%**: 偏高区域  ",
-                "🔴 **80-100%**: 高估区域  "
+                "🟢 **0-20%**: 低估区域",
+                "🟡 **20-40%**: 偏低区域", 
+                "🟠 **40-60%**: 适中区域",
+                "🔴 **60-80%**: 偏高区域",
+                "🔴 **80-100%**: 高估区域"
             ])
             
         except Exception as e:
             logger.error(f"数据解析错误: {e}", exc_info=True)
             message_lines.append("❌ 数据解析失败")
         
-        final_message = "\n".join(message_lines)
+        final_message = "\n\n".join(message_lines)
         logger.info(f"最终消息内容: {final_message}")
         return final_message
     
@@ -163,7 +162,7 @@ class IndexValuationBot:
         payload = {
             "msgtype": "markdown",
             "markdown": {
-                "title": "指数估值播报",
+                "title": "港股指数估值播报",
                 "text": message
             }
         }
@@ -194,16 +193,15 @@ class IndexValuationBot:
             return False
     
     def run(self, date=None):
-        """运行估值播报任务"""
+        """运行港股估值播报任务"""
         success = False
         try:
             # 如果没有指定日期，使用7天前的日期（避免使用未来日期）
             if date is None:
-                from datetime import datetime, timedelta
                 seven_days_ago = datetime.now() - timedelta(days=7)
                 date = seven_days_ago.strftime('%Y-%m-%d')
             
-            logger.info(f"开始执行指数估值播报任务，日期: {date}")
+            logger.info(f"开始执行港股指数估值播报任务，日期: {date}")
             
             # 获取估值数据
             valuation_data = self.get_index_valuation(date)
@@ -229,9 +227,9 @@ class IndexValuationBot:
 def main():
     """主函数"""
     try:
-        bot = IndexValuationBot()
+        bot = HKIndexValuationBot()
         
-        # 可以指定日期，不指定则使用今天
+        # 可以指定日期，不指定则使用7天前
         # bot.run('2024-12-20')
         bot.run()
         
