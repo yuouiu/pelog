@@ -62,5 +62,21 @@
             "HSIDI": "恒生创新药指数",
             "HSI": "恒生指数"
         }
+    },
+    "stock_config": {
+        "lixinger": {
+            "token": "9722a279-1ee5-46e0-a0af-57742d7023fb",
+            "api_url": "https://open.lixinger.com/api/cn/company/fundamental/non_financial"
+        },
+        "dingtalk": {
+            "webhook_url": "https://oapi.dingtalk.com/robot/send?access_token=acdeeb3f83768c376c1df3673b65abbfb395979ed7b818862d151890708ee5d8",
+            "secret": "your_dingtalk_secret_here"
+        },
+        "stock_codes": [
+            "300172"
+        ],
+        "stock_names": {
+            "300172": "中电环保"
+        }
     }
 }
